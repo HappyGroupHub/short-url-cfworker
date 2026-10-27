@@ -9,9 +9,10 @@
 ## 功能
 
 - `你的網域/短碼` 直接 302 轉址，網址後面的查詢參數會一起帶過去
-- 後台 `/admin`：建立、搜尋、編輯、刪除短網址，可自訂短碼（支援中文）和備註
+- 後台 `/admin`：建立、搜尋、編輯、刪除短網址，可以加備註
+- 輸入網址時自動產生短碼，也可以改成自訂的（支援中文），之後也能再改
 - 點擊次數統計
-- 密碼登入，密碼存在 Cloudflare 的加密 Secret 裡
+- 密碼登入，密碼存在 Cloudflare 的加密 Secret 裡；同一個 IP 15 分鐘內最多只能試 5 次
 - 介面支援繁體中文 / English、亮色 / 暗色模式，手機也能用
 - 可以從舊版 [Url-Shorten-Worker](https://github.com/crazypeace/Url-Shorten-Worker)（KV 版本）一鍵匯入舊資料
 
@@ -85,6 +86,8 @@ npm run typecheck                # 型別檢查
 - **保留字**：`admin`、`api`、`favicon.svg`、`robots.txt` 不能當短碼。
 - **短碼規則**：文字（含中文）、數字和 `- _ . ~`，不能以 `.` 開頭，最多 64 字。自動產生的短碼會避開 `0 O 1 l I` 這類容易看錯的字。
 - **點擊統計**：`HEAD` 請求（通常是聊天軟體產生連結預覽）不計入。
+- **改短碼**：改了之後舊的短網址會直接失效，已經分享出去的連結會打不開。
+- **換 icon**：替換 `public/favicon.svg` 就好。
 
 ## 專案結構
 
@@ -95,6 +98,7 @@ src/
   auth.ts        密碼與登入 session
   db.ts          D1 資料表與查詢
   links.ts       短碼、網址驗證
+  rate-limit.ts  登入次數限制
   import-kv.ts   舊版 KV 匯入
   pages.ts       首頁與 404 頁面
 public/

@@ -9,9 +9,10 @@ A personal URL shortener on Cloudflare Workers, with links stored in D1 and a cl
 ## Features
 
 - `your-domain/slug` redirects with a 302, forwarding any query string
-- Admin page at `/admin`: create, search, edit and delete links, with optional custom slugs (any language) and notes
+- Admin page at `/admin`: create, search, edit and delete links, with optional notes
+- A random slug is filled in as you type the URL; change it to your own (any language) now or later
 - Click counts
-- Password login; the password is stored as an encrypted Cloudflare secret
+- Password login; the password is stored as an encrypted Cloudflare secret, and each IP gets 5 tries per 15 minutes
 - Traditional Chinese and English UI, light and dark themes, works on phones
 - One-click import from the old [Url-Shorten-Worker](https://github.com/crazypeace/Url-Shorten-Worker) (KV version)
 
@@ -85,6 +86,8 @@ So the real ceiling is the Workers limit of 100,000 requests a day, close to 100
 - **Reserved slugs**: `admin`, `api`, `favicon.svg`, `robots.txt`.
 - **Slug rules**: letters (any language), digits and `- _ . ~`; can't start with `.`; at most 64 characters. Random slugs avoid look-alike characters such as `0 O 1 l I`.
 - **Click counting**: `HEAD` requests (usually link-preview bots) aren't counted.
+- **Renaming a slug**: the old short link stops working right away, including anywhere you already shared it.
+- **Changing the icon**: replace `public/favicon.svg`.
 
 ## Project layout
 
@@ -95,6 +98,7 @@ src/
   auth.ts        password and login sessions
   db.ts          D1 schema and queries
   links.ts       slug and URL validation
+  rate-limit.ts  login attempt limit
   import-kv.ts   import from the old KV version
   pages.ts       home and 404 pages
 public/
