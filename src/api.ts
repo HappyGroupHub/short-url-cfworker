@@ -10,6 +10,7 @@ import {
 import { deleteLink, getLink, insertLink, listLinks, updateLink } from "./db";
 import { importFromKv } from "./import-kv";
 import { MAX_NOTE_LENGTH, normalizeUrl, randomSlug, validateSlug } from "./links";
+import { clearLoginAttempts, clientKey, registerLoginAttempt } from "./rate-limit";
 import type { Env } from "./types";
 
 const MAX_PAGE_SIZE = 100;
@@ -74,13 +75,21 @@ export async function handleApi(request: Request, env: Env, path: string): Promi
 
   if (path === "/api/login" && method === "POST") {
     if (!env.ADMIN_PASSWORD) return error("not_configured", 503);
+    const client = clientKey(request.headers.get("CF-Connecting-IP"));
+    const attempt = await registerLoginAttempt(env.DB, client, now());
+    if (!attempt.allowed) {
+      return json({ error: "too_many_attempts", retryAfter: attempt.retryAfter }, 429, {
+        "Retry-After": String(attempt.retryAfter),
+      });
+    }
     const body = await readJson(request);
     const password = typeof body?.password === "string" ? body.password : "";
     if (!(await passwordMatches(password, env.ADMIN_PASSWORD))) {
       // Slow down password guessing a little.
       await new Promise((resolve) => setTimeout(resolve, 500));
-      return error("wrong_password", 401);
+      return json({ error: "wrong_password", remaining: attempt.remaining }, 401);
     }
+    await clearLoginAttempts(env.DB, client);
     const token = await createSessionToken(env.ADMIN_PASSWORD, now());
     return json({ ok: true }, 200, { "Set-Cookie": sessionCookie(token) });
   }

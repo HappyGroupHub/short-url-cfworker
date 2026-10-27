@@ -15,6 +15,13 @@ const MIGRATIONS: string[][] = [
     )`,
     `CREATE INDEX IF NOT EXISTS links_created_at ON links (created_at DESC)`,
   ],
+  [
+    `CREATE TABLE IF NOT EXISTS login_attempts (
+      client TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      window_start INTEGER NOT NULL
+    )`,
+  ],
 ];
 
 let schemaReady: Promise<void> | undefined;

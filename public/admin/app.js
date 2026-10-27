@@ -46,6 +46,8 @@ const MESSAGES = {
     importDone: (imported, skipped) => `匯入 ${imported} 條，略過 ${skipped} 筆。`,
     errors: {
       wrong_password: "密碼錯誤。",
+      wrongPasswordRemaining: (n) => (n > 0 ? `密碼錯誤，還可以再試 ${n} 次。` : "密碼錯誤，嘗試次數已用完，請 15 分鐘後再試。"),
+      too_many_attempts: (minutes) => `嘗試太多次，請 ${minutes} 分鐘後再試。`,
       not_configured: "尚未設定 ADMIN_PASSWORD。",
       invalid_url: "請輸入以 http:// 或 https:// 開頭的完整網址。",
       invalid_slug: "短碼只能包含文字、數字和 - _ . ~，不能以 . 開頭，最多 64 字。",
@@ -102,6 +104,9 @@ const MESSAGES = {
     importDone: (imported, skipped) => `Imported ${imported}, skipped ${skipped}.`,
     errors: {
       wrong_password: "Wrong password.",
+      wrongPasswordRemaining: (n) =>
+        n > 0 ? `Wrong password. ${n} ${n === 1 ? "try" : "tries"} left.` : "Wrong password. No tries left; please wait 15 minutes.",
+      too_many_attempts: (minutes) => `Too many attempts. Try again in ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`,
       not_configured: "ADMIN_PASSWORD is not set.",
       invalid_url: "Enter a full URL starting with http:// or https://.",
       invalid_slug: "Slugs may contain letters, digits and - _ . ~, can't start with a dot, and are at most 64 characters.",
@@ -140,9 +145,10 @@ function t(key, ...args) {
   return typeof value === "function" ? value(...args) : value;
 }
 
-function errorText(code) {
+function errorText(code, ...args) {
   const errors = MESSAGES[state.lang].errors;
-  return errors[code] ?? errors.unknown;
+  const value = errors[code] ?? errors.unknown;
+  return typeof value === "function" ? value(...args) : value;
 }
 
 function applyLanguage() {
@@ -157,10 +163,11 @@ function applyLanguage() {
 // --- API ---
 
 class ApiError extends Error {
-  constructor(code, status) {
+  constructor(code, status, data = {}) {
     super(code);
     this.code = code;
     this.status = status;
+    this.data = data;
   }
 }
 
@@ -181,7 +188,7 @@ async function api(path, options = {}) {
     showView("login");
     throw new ApiError("unauthorized", 401);
   }
-  if (!response.ok) throw new ApiError(data.error ?? "unknown", response.status);
+  if (!response.ok) throw new ApiError(data.error ?? "unknown", response.status, data);
   return data;
 }
 
@@ -438,7 +445,16 @@ async function onLogin(event) {
     form.reset();
     await enterApp(await api("/api/session"));
   } catch (error) {
-    showError($("login-error"), error);
+    const el = $("login-error");
+    if (error.code === "too_many_attempts") {
+      el.textContent = errorText(error.code, Math.ceil(error.data.retryAfter / 60));
+      el.hidden = false;
+    } else if (error.code === "wrong_password" && Number.isInteger(error.data.remaining)) {
+      el.textContent = errorText("wrongPasswordRemaining", error.data.remaining);
+      el.hidden = false;
+    } else {
+      showError(el, error);
+    }
   } finally {
     button.disabled = false;
   }
