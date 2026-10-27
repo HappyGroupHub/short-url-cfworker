@@ -1,6 +1,6 @@
 {
   "name": "short-url-cfworker",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "A self-hosted URL shortener on Cloudflare Workers + D1, with an admin page.",
   "license": "MIT",
