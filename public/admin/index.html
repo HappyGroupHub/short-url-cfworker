@@ -55,11 +55,15 @@
         </label>
         <div class="row">
           <label class="field">
-            <span data-i18n="customSlug">自訂短碼（選填）</span>
+            <span data-i18n="slug">短碼</span>
             <div class="prefixed">
-              <span class="prefix" id="origin-prefix"></span>
-              <input type="text" name="slug" autocomplete="off" spellcheck="false" data-i18n-placeholder="slugPlaceholder" placeholder="留空自動產生">
+              <span class="prefix"></span>
+              <input type="text" name="slug" autocomplete="off" spellcheck="false" data-i18n-placeholder="slugPlaceholder" placeholder="輸入網址後自動產生">
+              <button type="button" class="icon-btn reroll" id="reroll" data-i18n-title="reroll" title="換一個">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 0 1 7.4 5H17v2h6V5h-2v2.3A10 10 0 0 0 2.1 10.6l2 .4A8 8 0 0 1 12 4Zm7.9 9a8 8 0 0 1-15.3 2H7v-2H1v6h2v-2.3a10 10 0 0 0 18.9-3.3l-2-.4Z"/></svg>
+              </button>
             </div>
+            <small class="hint" id="slug-hint" data-i18n="slugHint" hidden>已自動產生，可以改成你想要的</small>
           </label>
           <label class="field">
             <span data-i18n="note">備註（選填）</span>

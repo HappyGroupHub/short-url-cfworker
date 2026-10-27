@@ -11,8 +11,10 @@ const MESSAGES = {
     login: "登入",
     createTitle: "建立短網址",
     targetUrl: "目標網址",
-    customSlug: "自訂短碼（選填）",
-    slugPlaceholder: "留空自動產生",
+    slug: "短碼",
+    slugHint: "已自動產生，可以改成你想要的",
+    slugPlaceholder: "輸入網址後自動產生",
+    reroll: "換一個",
     note: "備註（選填）",
     noteLabel: "備註",
     notePlaceholder: "方便之後搜尋",
@@ -69,8 +71,10 @@ const MESSAGES = {
     login: "Log in",
     createTitle: "New short link",
     targetUrl: "Destination URL",
-    customSlug: "Custom slug (optional)",
-    slugPlaceholder: "Leave empty for a random one",
+    slug: "Slug",
+    slugHint: "Picked at random. Change it if you like.",
+    slugPlaceholder: "Fills in once you enter a URL",
+    reroll: "Pick another",
     note: "Note (optional)",
     noteLabel: "Note",
     notePlaceholder: "Helps you find it later",
@@ -320,6 +324,42 @@ function renderLinks() {
 
 // --- Create ---
 
+// Same alphabet and length as randomSlug() in src/links.ts.
+const SLUG_ALPHABET = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+const RANDOM_SLUG_LENGTH = 6;
+
+function randomSlug() {
+  const limit = 256 - (256 % SLUG_ALPHABET.length);
+  let slug = "";
+  while (slug.length < RANDOM_SLUG_LENGTH) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(RANDOM_SLUG_LENGTH * 2))) {
+      if (byte < limit && slug.length < RANDOM_SLUG_LENGTH) slug += SLUG_ALPHABET[byte % SLUG_ALPHABET.length];
+    }
+  }
+  return slug;
+}
+
+// True while the slug field holds a slug we picked rather than one the user typed.
+let slugIsRandom = false;
+
+function setRandomSlug(slug) {
+  $("create-form").slug.value = slug;
+  slugIsRandom = slug !== "";
+  $("slug-hint").hidden = !slugIsRandom;
+}
+
+function onCreateUrlInput(event) {
+  const hasUrl = event.target.value.trim() !== "";
+  const slugField = $("create-form").slug;
+  if (hasUrl && slugField.value === "") setRandomSlug(randomSlug());
+  else if (!hasUrl && slugIsRandom) setRandomSlug("");
+}
+
+function onCreateSlugInput() {
+  slugIsRandom = false;
+  $("slug-hint").hidden = true;
+}
+
 async function onCreate(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -327,11 +367,22 @@ async function onCreate(event) {
   $("create-error").hidden = true;
   button.disabled = true;
   try {
-    const { link } = await api("/api/links", {
-      method: "POST",
-      body: { url: form.url.value, slug: form.slug.value, note: form.note.value },
-    });
+    let link;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        ({ link } = await api("/api/links", {
+          method: "POST",
+          body: { url: form.url.value, slug: form.slug.value, note: form.note.value },
+        }));
+        break;
+      } catch (error) {
+        // A picked slug clashing with an existing one is rare; just pick again.
+        if (error.code !== "slug_taken" || !slugIsRandom || attempt >= 3) throw error;
+        setRandomSlug(randomSlug());
+      }
+    }
     form.reset();
+    setRandomSlug("");
     const resultLink = $("result-link");
     resultLink.textContent = shortUrl(link.slug);
     resultLink.href = shortHref(link.slug);
@@ -487,6 +538,9 @@ async function init() {
   $("logout").addEventListener("click", onLogout);
   $("login-form").addEventListener("submit", onLogin);
   $("create-form").addEventListener("submit", onCreate);
+  $("create-form").url.addEventListener("input", onCreateUrlInput);
+  $("create-form").slug.addEventListener("input", onCreateSlugInput);
+  $("reroll").addEventListener("click", () => setRandomSlug(randomSlug()));
   $("result-copy").addEventListener("click", () => copy($("result-link").textContent));
   $("edit-form").addEventListener("submit", onEditSubmit);
   $("edit-cancel").addEventListener("click", () => $("edit-dialog").close());
