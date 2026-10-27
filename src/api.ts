@@ -175,6 +175,18 @@ async function editLink(request: Request, env: Env, slug: string): Promise<Respo
   const note = readNote(body.note);
   if (note === null) return error("invalid_note", 400);
 
-  const link = await updateLink(env.DB, slug, { url, note }, now());
-  return link ? json({ link }) : error("not_found", 404);
+  let newSlug: string | undefined;
+  if (body.slug !== undefined) {
+    if (typeof body.slug !== "string") return error("invalid_slug", 400);
+    const trimmed = body.slug.trim();
+    if (trimmed !== slug) {
+      const slugError = validateSlug(trimmed);
+      if (slugError) return error(slugError, 400);
+      newSlug = trimmed;
+    }
+  }
+
+  const link = await updateLink(env.DB, slug, { slug: newSlug, url, note }, now());
+  if (link) return json({ link });
+  return (await getLink(env.DB, slug)) ? error("slug_taken", 409) : error("not_found", 404);
 }

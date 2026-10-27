@@ -99,18 +99,20 @@ export async function insertLink(
   return result.meta.changes > 0;
 }
 
+/** Returns null if the link doesn't exist or the new slug is already taken. */
 export async function updateLink(
   db: D1Database,
   slug: string,
-  changes: { url?: string; note?: string },
+  changes: { slug?: string; url?: string; note?: string },
   now: number,
 ): Promise<Link | null> {
   return db
     .prepare(
-      `UPDATE links SET url = COALESCE(?, url), note = COALESCE(?, note), updated_at = ?
+      `UPDATE OR IGNORE links
+       SET slug = COALESCE(?, slug), url = COALESCE(?, url), note = COALESCE(?, note), updated_at = ?
        WHERE slug = ? RETURNING *`,
     )
-    .bind(changes.url ?? null, changes.note ?? null, now, slug)
+    .bind(changes.slug ?? null, changes.url ?? null, changes.note ?? null, now, slug)
     .first<Link>();
 }
 

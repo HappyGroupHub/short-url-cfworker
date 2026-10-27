@@ -136,7 +136,14 @@
   <dialog id="edit-dialog">
     <form method="dialog" id="edit-form" class="dialog-body">
       <h2 data-i18n="editTitle">編輯短網址</h2>
-      <p class="muted mono" id="edit-slug"></p>
+      <label class="field">
+        <span data-i18n="slug">短碼</span>
+        <div class="prefixed">
+          <span class="prefix"></span>
+          <input type="text" name="slug" required autocomplete="off" spellcheck="false">
+        </div>
+        <small class="hint warning" id="rename-warning" hidden></small>
+      </label>
       <label class="field">
         <span data-i18n="targetUrl">目標網址</span>
         <input type="url" name="url" required>

@@ -291,7 +291,6 @@ dialog {
 dialog::backdrop { background: rgb(15 17 21 / 0.45); }
 .dialog-body { display: grid; gap: 14px; padding: 20px; }
 .dialog-body h2, .dialog-body p { margin: 0; }
-.dialog-body p.mono { overflow-wrap: anywhere; }
 
 /* Toast and spinner */
 

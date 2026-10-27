@@ -35,6 +35,7 @@ const MESSAGES = {
     edit: "編輯",
     delete: "刪除",
     editTitle: "編輯短網址",
+    renameWarning: (slug) => `改了短碼後，舊的「${slug}」會失效，已經分享出去的連結會打不開。`,
     cancel: "取消",
     save: "儲存",
     saved: "已儲存",
@@ -95,6 +96,7 @@ const MESSAGES = {
     edit: "Edit",
     delete: "Delete",
     editTitle: "Edit link",
+    renameWarning: (slug) => `After renaming, the old "${slug}" stops working, including anywhere you already shared it.`,
     cancel: "Cancel",
     save: "Save",
     saved: "Saved",
@@ -403,11 +405,18 @@ async function onCreate(event) {
 function openEdit(link) {
   state.editing = link;
   const form = $("edit-form");
-  $("edit-slug").textContent = shortUrl(link.slug);
+  form.slug.value = link.slug;
   form.url.value = link.url;
   form.note.value = link.note;
+  $("rename-warning").hidden = true;
   $("edit-error").hidden = true;
   $("edit-dialog").showModal();
+}
+
+function onEditSlugInput(event) {
+  const warning = $("rename-warning");
+  warning.textContent = t("renameWarning", state.editing.slug);
+  warning.hidden = event.target.value.trim() === state.editing.slug;
 }
 
 async function onEditSubmit(event) {
@@ -419,7 +428,7 @@ async function onEditSubmit(event) {
   try {
     await api(`/api/links/${encodeURIComponent(state.editing.slug)}`, {
       method: "PATCH",
-      body: { url: form.url.value, note: form.note.value },
+      body: { slug: form.slug.value, url: form.url.value, note: form.note.value },
     });
     $("edit-dialog").close();
     toast(t("saved"));
@@ -541,6 +550,7 @@ async function init() {
   $("create-form").url.addEventListener("input", onCreateUrlInput);
   $("create-form").slug.addEventListener("input", onCreateSlugInput);
   $("reroll").addEventListener("click", () => setRandomSlug(randomSlug()));
+  $("edit-form").slug.addEventListener("input", onEditSlugInput);
   $("result-copy").addEventListener("click", () => copy($("result-link").textContent));
   $("edit-form").addEventListener("submit", onEditSubmit);
   $("edit-cancel").addEventListener("click", () => $("edit-dialog").close());
