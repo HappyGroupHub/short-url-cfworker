@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "short-url",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-20",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      // database_id is filled in automatically on the first deploy.
+      "binding": "DB",
+      "database_name": "short-url"
+    }
+  ],
+  // To import links from an old Url-Shorten-Worker KV namespace, uncomment
+  // this and put in the namespace ID. See docs/migrate-from-kv.md.
+  // "kv_namespaces": [
+  //   { "binding": "LEGACY_KV", "id": "<your old KV namespace ID>" }
+  // ],
+  "vars": {
+    // Where to redirect visitors who open the bare domain. Empty = show a simple page.
+    "HOME_URL": ""
+  },
+  "observability": {
+    "enabled": true
+  }
+}

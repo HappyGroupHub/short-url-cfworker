@@ -1,0 +1,32 @@
+{
+  "name": "short-url-cfworker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A self-hosted URL shortener on Cloudflare Workers + D1, with an admin page.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261027.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.154.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "ADMIN_PASSWORD": {
+        "description": "Password for the admin page at `/admin`. Use a long, random string. / 後台 `/admin` 的登入密碼，請用夠長的隨機字串。"
+      },
+      "HOME_URL": {
+        "description": "Optional. Where to send visitors who open the bare domain. Leave empty to show a simple page. / 選填。直接開啟網域首頁時要轉去的網址，留空則顯示簡單頁面。"
+      },
+      "DB": {
+        "description": "D1 database that stores your links. A new one is created for you. / 存放短網址的 D1 資料庫，會自動幫你建立。"
+      }
+    }
+  }
+}
