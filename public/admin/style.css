@@ -148,7 +148,7 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in sr
 .hint.warning { color: var(--danger); }
 
 .create-form { display: grid; gap: 14px; }
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .form-error { margin: 0; color: var(--danger); font-size: 14px; }
 #login-form { display: grid; gap: 16px; }
