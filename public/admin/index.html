@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Short Links</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/admin/style.css">
+  <script src="/admin/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="/favicon.svg" alt="" width="28" height="28">
+      <span data-i18n="title">短網址管理</span>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="btn ghost small" id="lang-toggle">EN</button>
+      <button type="button" class="btn ghost small" id="logout" hidden data-i18n="logout">登出</button>
+    </div>
+  </header>
+
+  <main id="loading" class="center-screen">
+    <div class="spinner" aria-label="Loading"></div>
+  </main>
+
+  <main id="not-configured" class="center-screen" hidden>
+    <section class="card narrow">
+      <h1 data-i18n="notConfiguredTitle">尚未設定密碼</h1>
+      <p class="muted" data-i18n="notConfiguredBody">請在 Cloudflare 後台替這個 Worker 加上名為 ADMIN_PASSWORD 的 Secret，然後重新整理這個頁面。</p>
+    </section>
+  </main>
+
+  <main id="login" class="center-screen" hidden>
+    <form class="card narrow" id="login-form">
+      <h1 data-i18n="loginTitle">登入</h1>
+      <label class="field">
+        <span data-i18n="password">密碼</span>
+        <input type="password" name="password" autocomplete="current-password" required autofocus>
+      </label>
+      <p class="form-error" id="login-error" hidden></p>
+      <button type="submit" class="btn primary block" data-i18n="login">登入</button>
+    </form>
+  </main>
+
+  <main id="app" class="container" hidden>
+    <section class="card">
+      <h2 data-i18n="createTitle">建立短網址</h2>
+      <form id="create-form" class="create-form">
+        <label class="field">
+          <span data-i18n="targetUrl">目標網址</span>
+          <input type="url" name="url" required placeholder="https://" autocomplete="off">
+        </label>
+        <div class="row">
+          <label class="field">
+            <span data-i18n="customSlug">自訂短碼（選填）</span>
+            <div class="prefixed">
+              <span class="prefix" id="origin-prefix"></span>
+              <input type="text" name="slug" autocomplete="off" spellcheck="false" data-i18n-placeholder="slugPlaceholder" placeholder="留空自動產生">
+            </div>
+          </label>
+          <label class="field">
+            <span data-i18n="note">備註（選填）</span>
+            <input type="text" name="note" maxlength="500" autocomplete="off" data-i18n-placeholder="notePlaceholder" placeholder="方便之後搜尋">
+          </label>
+        </div>
+        <p class="form-error" id="create-error" hidden></p>
+        <div class="form-actions">
+          <button type="submit" class="btn primary" data-i18n="create">建立</button>
+        </div>
+      </form>
+      <div class="result" id="create-result" hidden>
+        <span class="result-label" data-i18n="created">已建立</span>
+        <a class="result-link" id="result-link" target="_blank" rel="noopener"></a>
+        <button type="button" class="btn small" id="result-copy" data-i18n="copy">複製</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="list-header">
+        <h2 data-i18n="linksTitle">所有短網址</h2>
+        <span class="muted" id="total"></span>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.96 12.06l4.24 4.24-1.4 1.4-4.24-4.24A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+        <input type="search" id="search" data-i18n-placeholder="searchPlaceholder" placeholder="搜尋短碼、網址或備註" autocomplete="off">
+      </div>
+      <ul class="links" id="links"></ul>
+      <p class="empty muted" id="empty" hidden></p>
+      <nav class="pager" id="pager" hidden>
+        <button type="button" class="btn small" id="prev" data-i18n="prev">上一頁</button>
+        <span class="muted" id="page-info"></span>
+        <button type="button" class="btn small" id="next" data-i18n="next">下一頁</button>
+      </nav>
+    </section>
+
+    <section class="card" id="import-card" hidden>
+      <h2 data-i18n="importTitle">從舊版 KV 匯入</h2>
+      <p class="muted" data-i18n="importBody">偵測到 LEGACY_KV 綁定。可以把舊版 Url-Shorten-Worker 的短網址匯入到這裡，已存在的短碼會略過。</p>
+      <div class="form-actions">
+        <button type="button" class="btn" id="import" data-i18n="importButton">開始匯入</button>
+      </div>
+      <pre class="import-result" id="import-result" hidden></pre>
+    </section>
+  </main>
+
+  <template id="link-template">
+    <li class="link">
+      <div class="link-main">
+        <div class="link-title">
+          <a class="slug" target="_blank" rel="noopener"></a>
+          <button type="button" class="icon-btn copy" data-i18n-title="copy" title="複製">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h11a2 2 0 0 1 2 2v11h-2V5H8V3Zm-3 4h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm0 2v10h10V9H5Z"/></svg>
+          </button>
+        </div>
+        <a class="target" target="_blank" rel="noopener noreferrer"></a>
+        <span class="note"></span>
+      </div>
+      <div class="link-meta">
+        <span class="clicks"></span>
+        <span class="date muted"></span>
+      </div>
+      <div class="link-actions">
+        <button type="button" class="btn small edit" data-i18n="edit">編輯</button>
+        <button type="button" class="btn small danger delete" data-i18n="delete">刪除</button>
+      </div>
+    </li>
+  </template>
+
+  <dialog id="edit-dialog">
+    <form method="dialog" id="edit-form" class="dialog-body">
+      <h2 data-i18n="editTitle">編輯短網址</h2>
+      <p class="muted mono" id="edit-slug"></p>
+      <label class="field">
+        <span data-i18n="targetUrl">目標網址</span>
+        <input type="url" name="url" required>
+      </label>
+      <label class="field">
+        <span data-i18n="noteLabel">備註</span>
+        <input type="text" name="note" maxlength="500">
+      </label>
+      <p class="form-error" id="edit-error" hidden></p>
+      <div class="form-actions">
+        <button type="button" class="btn" value="cancel" id="edit-cancel" data-i18n="cancel">取消</button>
+        <button type="submit" class="btn primary" data-i18n="save">儲存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog">
+    <form method="dialog" id="confirm-form" class="dialog-body">
+      <h2 data-i18n="deleteTitle">刪除短網址？</h2>
+      <p class="muted" id="confirm-text"></p>
+      <div class="form-actions">
+        <button type="submit" class="btn" value="cancel" data-i18n="cancel">取消</button>
+        <button type="submit" class="btn danger-solid" value="confirm" data-i18n="delete">刪除</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
