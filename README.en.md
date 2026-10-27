@@ -13,7 +13,7 @@ A personal URL shortener that runs on Cloudflare Workers. Links are stored in a 
 - A random slug is filled in as you type the destination URL. Keep it, or change it to your own (any language), now or later
 - Click counts for every link
 - Password login. Each IP gets 5 tries per 15 minutes, and once you're logged in, the browser stays logged in until you log out
-- Traditional Chinese and English UI, light and dark themes, works on phones
+- English UI by default, with a button to switch to Traditional Chinese (your choice is remembered); light and dark themes; works on phones
 
 ## Deploy
 

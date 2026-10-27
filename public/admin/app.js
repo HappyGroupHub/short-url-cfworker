@@ -143,7 +143,7 @@ function pickLanguage() {
     const saved = localStorage.getItem("lang");
     if (saved === "zh" || saved === "en") return saved;
   } catch {}
-  return navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
+  return "en";
 }
 
 function t(key, ...args) {
