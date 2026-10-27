@@ -2,7 +2,7 @@
 
 const MESSAGES = {
   zh: {
-    title: "短網址管理",
+    appName: "短網址",
     logout: "登出",
     notConfiguredTitle: "尚未設定密碼",
     notConfiguredBody: "請在 Cloudflare 後台替這個 Worker 加上名為 ADMIN_PASSWORD 的 Secret，然後重新整理這個頁面。",
@@ -60,7 +60,7 @@ const MESSAGES = {
     },
   },
   en: {
-    title: "Short Links",
+    appName: "Short links",
     logout: "Log out",
     notConfiguredTitle: "No password set",
     notConfiguredBody: "Add a secret named ADMIN_PASSWORD to this Worker in the Cloudflare dashboard, then reload this page.",
@@ -153,7 +153,7 @@ function errorText(code, ...args) {
 
 function applyLanguage() {
   document.documentElement.lang = state.lang === "zh" ? "zh-Hant" : "en";
-  document.title = t("title");
+  document.title = `${location.host} · ${t("appName")}`;
   $("lang-toggle").textContent = state.lang === "zh" ? "EN" : "中文";
   for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
   for (const el of document.querySelectorAll("[data-i18n-placeholder]")) el.placeholder = t(el.dataset.i18nPlaceholder);
@@ -470,7 +470,11 @@ async function onLogout() {
 
 async function init() {
   applyLanguage();
-  $("origin-prefix").textContent = `${location.host}/`;
+  $("site-name").textContent = location.host;
+  for (const el of document.querySelectorAll(".prefix")) {
+    el.textContent = `${location.host}/`;
+    el.title = `${location.origin}/`;
+  }
 
   $("lang-toggle").addEventListener("click", () => {
     state.lang = state.lang === "zh" ? "en" : "zh";

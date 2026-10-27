@@ -68,7 +68,18 @@ h2 { font-size: 17px; }
   top: 0;
   z-index: 10;
 }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 650; font-size: 16px; }
+.brand img { flex-shrink: 0; }
+.site-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
 .topbar-actions { display: flex; gap: 8px; }
 
 .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 20px; }
