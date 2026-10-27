@@ -66,11 +66,16 @@ export async function handleApi(request: Request, env: Env, path: string): Promi
   if (method !== "GET" && !isSameSiteJson(request)) return error("bad_request", 400);
 
   if (path === "/api/session" && method === "GET") {
-    return json({
-      configured: Boolean(env.ADMIN_PASSWORD),
-      authenticated: await isAuthenticated(request, env),
-      legacyKv: Boolean(env.LEGACY_KV),
-    });
+    const authenticated = await isAuthenticated(request, env);
+    const renewed: HeadersInit =
+      authenticated && env.ADMIN_PASSWORD
+        ? { "Set-Cookie": sessionCookie(await createSessionToken(env.ADMIN_PASSWORD, now())) }
+        : {};
+    return json(
+      { configured: Boolean(env.ADMIN_PASSWORD), authenticated, legacyKv: Boolean(env.LEGACY_KV) },
+      200,
+      renewed,
+    );
   }
 
   if (path === "/api/login" && method === "POST") {

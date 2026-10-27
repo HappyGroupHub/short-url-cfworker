@@ -1,5 +1,7 @@
 export const SESSION_COOKIE = "session";
-export const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
+// Each visit to the admin page renews the session, so in practice you stay
+// logged in until you log out or go this long without opening it.
+export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 const encoder = new TextEncoder();
 
