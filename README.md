@@ -1,77 +1,77 @@
 # short-url-cfworker
 
-[English](README.en.md) | 繁體中文
+English | [繁體中文](README.zh-TW.md)
 
-一個架在 Cloudflare Workers 上的個人短網址服務。短網址存在 Cloudflare D1 資料庫裡，用網頁後台管理，全部在 Cloudflare 免費方案內就能跑，不需要自己的伺服器。
+A personal URL shortener that runs on Cloudflare Workers. Links are stored in a Cloudflare D1 database and managed from a web admin page. Everything fits in Cloudflare's free plan, so you don't need a server of your own.
 
-<img src="docs/images/admin.png" alt="管理後台" width="720">
+<img src="docs/images/admin.png" alt="Admin page" width="720">
 
-## 功能
+## Features
 
-- `你的網域/短碼` 會 302 轉址到目標網址，網址後面的查詢參數（例如 `?utm_source=...`）也會一起帶過去
-- 在 `/admin` 後台建立、搜尋、編輯、刪除短網址，每條都可以加備註
-- 輸入目標網址時會自動產生一組短碼，可以直接用，也可以改成自己想要的（中文也行），之後還能再改
-- 記錄每條短網址的點擊次數
-- 用密碼登入，同一個 IP 在 15 分鐘內最多只能試 5 次密碼；登入後只要不登出，這個瀏覽器就會一直保持登入
-- 介面預設是英文，右上角可以切換成繁體中文（會記住你的選擇）；支援亮色和暗色模式，手機也能用
+- `your-domain/slug` redirects to the destination with a 302, and any query string (such as `?utm_source=...`) is passed along
+- Create, search, edit and delete links from the admin page at `/admin`, with an optional note on each
+- A random slug is filled in as you type the destination URL. Keep it, or change it to your own (any language), now or later
+- Click counts for every link
+- Password login. Each IP gets 5 tries per 15 minutes, and once you're logged in, the browser stays logged in until you log out
+- English UI by default, with a button to switch to Traditional Chinese (your choice is remembered); light and dark themes; works on phones
 
-## 部署
+## Deploy
 
-部署有兩種方式，選一種就好：
+There are two ways to deploy. Pick one:
 
-- [一鍵部署](#一鍵部署推薦)：全部在網頁上完成，不用裝任何東西，適合大部分人。
-- [手動部署](#手動部署)：用指令部署，適合想在自己電腦上改程式的人。
+- [One-click deploy](#one-click-deploy-recommended): everything happens in the browser and there's nothing to install. Right for most people.
+- [Manual deploy](#manual-deploy): deploy from the command line. Right if you want to change the code on your own machine.
 
-開始前你需要一個 [Cloudflare 帳號](https://dash.cloudflare.com/sign-up)（免費）和一個 GitHub 帳號。
+You need a [Cloudflare account](https://dash.cloudflare.com/sign-up) (free) and a GitHub account.
 
-### 一鍵部署（推薦）
+### One-click deploy (recommended)
 
-按下按鈕後，Cloudflare 會幫你做完這些事：
+The button does the following for you:
 
-- 把這個專案複製一份到你的 GitHub，變成你自己的 repo（不是 fork，你不用先 fork）
-- 建立 D1 資料庫並接到 Worker 上
-- 建置並部署 Worker
-- 之後你只要 push 到那個 repo，Cloudflare 就會自動重新部署
+- Copies this project into a new repo on your GitHub account. It's a copy, not a fork, so you don't need to fork anything first.
+- Creates a D1 database and connects it to the Worker.
+- Builds and deploys the Worker.
+- Redeploys automatically whenever you push to that repo later.
 
-你要做的只有下面這幾步。
+Here is what you do.
 
-**1. 按下部署按鈕**
+**1. Click the button**
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/HappyGroupHub/short-url-cfworker)
 
-如果還沒登入 Cloudflare，會先要你登入。
+Log in to Cloudflare if you aren't already.
 
-**2. 連結 GitHub**
+**2. Connect GitHub**
 
-畫面會請你連結 Git 帳號，選 GitHub，照指示授權 Cloudflare。已經連結過的話會直接跳過這步。
+When asked to connect a Git account, choose GitHub and authorize Cloudflare. If you've connected it before, this step is skipped.
 
-**3. 確認設定**
+**3. Check the settings**
 
-設定頁面上的欄位大多已經填好了：
+Most fields are already filled in:
 
-| 欄位 | 要做什麼 |
+| Field | What to do |
 |---|---|
-| Git 帳號和 repository 名稱 | 選要把 repo 建在哪個帳號底下，名稱可以照預設 |
-| Worker 名稱（Project name） | 預設是 `short-url`，會出現在網址裡，想改可以改 |
-| D1 資料庫 | 照預設，Cloudflare 會幫你建一個新的 |
-| `ADMIN_PASSWORD` | 後台密碼，請自己填一組夠長的隨機字串 |
-| Build / Deploy 指令 | 照預設，不用動 |
+| Git account and repository name | Pick the account to create the repo under. The default name is fine. |
+| Worker name (Project name) | Defaults to `short-url` and appears in the URL. Change it if you like. |
+| D1 database | Keep the default; Cloudflare creates a new one. |
+| `ADMIN_PASSWORD` | Your admin password. Use a long, random string. |
+| Build / deploy commands | Keep the defaults. |
 
-**4. 部署**
+**4. Deploy**
 
-按下 **Create and deploy**，等建置跑完，大約一兩分鐘。
+Click **Create and deploy** and wait for the build to finish, usually a minute or two.
 
-**5. 登入後台**
+**5. Log in**
 
-部署完成後畫面會顯示 Worker 的網址，長得像 `https://short-url.你的子網域.workers.dev`。在後面加上 `/admin` 打開，用剛剛設定的密碼登入，就可以開始建立短網址了。
+When it's done you'll see the Worker's URL, something like `https://short-url.your-subdomain.workers.dev`. Add `/admin` to it, open it, and log in with the password you just set. You can start creating links.
 
-接下來如果想用自己的網域，請看[綁定自己的網域](#綁定自己的網域)。
+To use your own domain, see [Use your own domain](#use-your-own-domain).
 
-### 手動部署
+### Manual deploy
 
-需要 [Node.js](https://nodejs.org/) 20 以上和 Git。
+Requires [Node.js](https://nodejs.org/) 20 or later and Git.
 
-**1. 下載專案並安裝套件**
+**1. Download the project and install dependencies**
 
 ```bash
 git clone https://github.com/HappyGroupHub/short-url-cfworker.git
@@ -79,56 +79,56 @@ cd short-url-cfworker
 npm install
 ```
 
-**2. 登入 Cloudflare**
+**2. Log in to Cloudflare**
 
 ```bash
 npx wrangler login
 ```
 
-瀏覽器會打開 Cloudflare 的授權頁面，按允許。
+A browser window opens on Cloudflare's authorization page. Click Allow.
 
-**3. 部署**
+**3. Deploy**
 
 ```bash
 npm run deploy
 ```
 
-第一次部署時，Wrangler 會問你要不要建立新的 D1 資料庫，選建立。資料表會在第一次有人連進來時自動建立，不需要另外跑任何資料庫指令。
+On the first deploy, Wrangler asks whether to create a new D1 database. Choose to create one. Tables are created automatically on the first request, so there are no database commands to run.
 
-**4. 設定後台密碼**
+**4. Set the admin password**
 
 ```bash
 npx wrangler secret put ADMIN_PASSWORD
 ```
 
-輸入你要的密碼後按 Enter。
+Type your password and press Enter.
 
-**5. 登入後台**
+**5. Log in**
 
-打開部署時顯示的網址，後面加上 `/admin`，用剛剛的密碼登入。
+Open the URL printed by the deploy step, add `/admin`, and log in with that password.
 
-## 綁定自己的網域
+## Use your own domain
 
-網域要先託管在 Cloudflare 上（DNS 由 Cloudflare 管理）。
+The domain must already be on Cloudflare (Cloudflare manages its DNS).
 
-1. 打開 [Cloudflare 後台](https://dash.cloudflare.com/)，左邊選 **Workers & Pages**，點你的 Worker。
-2. 進到 **Settings**，找到 **Domains & Routes**，按 **Add**。
-3. 選 **Custom domain**，輸入要用的網域，例如 `s.example.com`，按 **Add domain**。
+1. Open the [Cloudflare dashboard](https://dash.cloudflare.com/), choose **Workers & Pages** on the left, and click your Worker.
+2. Go to **Settings**, find **Domains & Routes**, and click **Add**.
+3. Choose **Custom domain**, enter the domain, for example `s.example.com`, and click **Add domain**.
 
-等幾分鐘憑證發好就能用了。之後建議都從自己的網域打開後台，複製出去的短網址也會是這個網域。
+It works once the certificate is issued, usually within a few minutes. Open the admin page from your own domain from then on, so the links you copy use that domain too.
 
-## 設定
+## Configuration
 
-| 名稱 | 說明 | 怎麼改 |
+| Name | What it does | How to change it |
 |---|---|---|
-| `ADMIN_PASSWORD` | 後台密碼（必填）。改密碼會讓所有已登入的裝置登出。 | Cloudflare 後台 → 你的 Worker → **Settings** → **Variables and Secrets**，編輯 `ADMIN_PASSWORD` |
-| `HOME_URL` | 有人直接打開網域首頁時要轉去哪裡，例如你的官網。留空會顯示一個簡單的頁面。 | 改你那份 repo 裡 `wrangler.jsonc` 的 `vars.HOME_URL`，然後 push |
+| `ADMIN_PASSWORD` | Admin password (required). Changing it logs out every device. | Cloudflare dashboard → your Worker → **Settings** → **Variables and Secrets**, edit `ADMIN_PASSWORD` |
+| `HOME_URL` | Where to send visitors who open the bare domain, such as your main website. Empty shows a simple page. | Edit `vars.HOME_URL` in `wrangler.jsonc` in your repo, then push |
 
-`HOME_URL` 請改在 `wrangler.jsonc` 裡，不要在 Cloudflare 後台改，因為每次部署都會用設定檔的值蓋掉後台的設定。
+Change `HOME_URL` in `wrangler.jsonc`, not in the dashboard. Every deploy replaces dashboard values with what's in the config file.
 
-## 更新到新版
+## Updating
 
-一鍵部署建立的是複製出來的 repo，不會自動跟著這個專案更新。想更新的話，在你自己那份 repo 的資料夾裡執行：
+The repo created by the button is a copy, so it doesn't follow this project automatically. To pull in updates, run this in your repo's folder:
 
 ```bash
 git remote add upstream https://github.com/HappyGroupHub/short-url-cfworker.git
@@ -136,51 +136,51 @@ git pull upstream main
 git push
 ```
 
-第一行只有第一次需要。push 之後 Cloudflare 會自動重新部署。如果 `wrangler.jsonc` 有衝突，保留你自己的設定就好。
+You only need the first line once. Cloudflare redeploys after the push. If `wrangler.jsonc` conflicts, keep your own settings.
 
-## 免費額度夠用嗎？
+## Is the free plan enough?
 
-個人使用通常完全夠。Workers 免費方案每天可以處理 10 萬次請求，D1 每天可以讀 500 萬列、寫 10 萬列。
+For personal use, almost certainly. The Workers free plan allows 100,000 requests a day; D1 allows 5 million rows read and 100,000 rows written a day.
 
-每次有人點短網址會讀 1 列、寫 1 列（更新點擊數），後台搜尋一次大約讀取跟短網址總數一樣多的列。算下來真正的上限是 Workers 的每天 10 萬次請求，也就是一天接近 10 萬次點擊。額度在台灣時間每天早上 8 點重置。
+Each click reads 1 row and writes 1 row (the click counter). An admin search reads about as many rows as you have links. So the real limit is the Workers cap of 100,000 requests a day, close to 100,000 clicks. Limits reset daily at 00:00 UTC.
 
-## 其他說明
+## Notes
 
-- 轉址用 302 而不是 301，因為瀏覽器會永久快取 301，之後改目標網址或統計點擊都會不準。
-- `admin`、`api`、`favicon.svg`、`robots.txt` 是保留字，不能當短碼。
-- 短碼可以用文字（含中文）、數字和 `- _ . ~`，不能以 `.` 開頭，最多 64 個字。自動產生的短碼會避開 `0 O 1 l I` 這類容易看錯的字。
-- 改了短碼之後舊的短網址會直接失效，已經分享出去的連結會打不開。
-- `HEAD` 請求不算點擊，這種請求通常是聊天軟體在產生連結預覽。
-- 想換 icon 的話，替換 `public/favicon.svg` 就好。
+- Redirects use 302, not 301. Browsers cache a 301 permanently, which would break changing a link's target and counting clicks.
+- `admin`, `api`, `favicon.svg` and `robots.txt` are reserved and can't be used as slugs.
+- Slugs may contain letters (any language), digits and `- _ . ~`, can't start with `.`, and are at most 64 characters. Random slugs avoid look-alike characters such as `0 O 1 l I`.
+- Renaming a slug makes the old short link stop working right away, including anywhere you already shared it.
+- `HEAD` requests aren't counted as clicks. They usually come from chat apps building link previews.
+- To change the icon, replace `public/favicon.svg`.
 
-## 從 Url-Shorten-Worker 搬過來
+## Moving from Url-Shorten-Worker
 
-如果你原本用的是 [Url-Shorten-Worker](https://github.com/crazypeace/Url-Shorten-Worker)（資料存在 KV），可以把舊的短網址整批匯入，已經分享出去的連結都會繼續有效。步驟請看 [docs/migrate-from-kv.md](docs/migrate-from-kv.md)。
+If you used [Url-Shorten-Worker](https://github.com/crazypeace/Url-Shorten-Worker) (links stored in KV), you can import all your old links, and every link you already shared keeps working. See [docs/migrate-from-kv.md](docs/migrate-from-kv.md).
 
-## 本機開發
+## Local development
 
 ```bash
-cp .dev.vars.example .dev.vars   # 然後在檔案裡填 ADMIN_PASSWORD
+cp .dev.vars.example .dev.vars   # then set ADMIN_PASSWORD in it
 npm run dev                      # http://localhost:8787/admin/
-npm test                         # 單元測試
-npm run typecheck                # 型別檢查
+npm test                         # unit tests
+npm run typecheck
 ```
 
-## 專案結構
+## Project layout
 
 ```
 src/
-  index.ts       轉址與路由
-  api.ts         後台 API（/api/*）
-  auth.ts        密碼與登入 session
-  rate-limit.ts  登入次數限制
-  db.ts          D1 資料表與查詢
-  links.ts       短碼、網址驗證
-  import-kv.ts   從 KV 匯入
-  pages.ts       首頁與 404 頁面
+  index.ts       redirects and routing
+  api.ts         admin API (/api/*)
+  auth.ts        password and login sessions
+  rate-limit.ts  login attempt limit
+  db.ts          D1 schema and queries
+  links.ts       slug and URL validation
+  import-kv.ts   import from KV
+  pages.ts       home and 404 pages
 public/
-  admin/         後台頁面（HTML / CSS / JS，沒有建置步驟）
-test/            單元測試（Vitest）
+  admin/         admin page (plain HTML / CSS / JS, no build step)
+test/            unit tests (Vitest)
 ```
 
 ## License
