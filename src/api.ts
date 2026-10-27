@@ -8,6 +8,7 @@ import {
   verifySessionToken,
 } from "./auth";
 import { deleteLink, getLink, insertLink, listLinks, updateLink } from "./db";
+import { importFromKv } from "./import-kv";
 import { MAX_NOTE_LENGTH, normalizeUrl, randomSlug, validateSlug } from "./links";
 import type { Env } from "./types";
 
@@ -101,6 +102,11 @@ export async function handleApi(request: Request, env: Env, path: string): Promi
 
   if (path === "/api/links" && method === "POST") {
     return createLink(request, env);
+  }
+
+  if (path === "/api/import-kv" && method === "POST") {
+    if (!env.LEGACY_KV) return error("legacy_kv_not_bound", 400);
+    return json(await importFromKv(env.LEGACY_KV, env.DB, now()));
   }
 
   if (path.startsWith("/api/links/")) {
